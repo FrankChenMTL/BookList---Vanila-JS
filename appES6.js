@@ -49,6 +49,46 @@ class UI {
   }
 }
 
+//Local Storage Class
+class Store {
+  static getBooks() {
+    let books;
+    if (localStorage.getItem('books') === null) {
+      books = [];
+    } else {
+      books = JSON.parse(localStorage.getItem('books'));
+    }
+    return books;
+  }
+
+  static displayBooks() {
+    const books = Store.getBooks();
+    books.forEach(book => {
+      const ui = new UI;
+      ui.addBookToList(book);
+    });
+  }
+
+  static addBook(book) {
+    const books = Store.getBooks();
+    books.push(book);
+    localStorage.setItem('books', JSON.stringify(books));
+  }
+  static removeBook(isbn) {
+    const books = Store.getBooks();
+    books.forEach((book, index) => {
+      if (book.isbn === isbn) {
+        books.splice(index, 1);
+      }
+    });
+
+    localStorage.setItem('books', JSON.stringify(books));
+  }
+}
+
+//DOM load event
+document.addEventListener('DOMContentLoaded', Store.displayBooks());
+
 //Event Listeners for add book
 document.getElementById('book-form').addEventListener('submit', function (e) {
   //Get form values
@@ -69,6 +109,9 @@ document.getElementById('book-form').addEventListener('submit', function (e) {
     //Add book to list
     ui.addBookToList(book);
 
+    //Add to local storage
+    Store.addBook(book);
+
     //Clear fields
     ui.clearFields();
 
@@ -83,6 +126,10 @@ document.getElementById('book-list').addEventListener('click', function (e) {
   const ui = new UI();
 
   ui.deleteBook(e.target);
+
+  //Remove from Local Storage
+  Store.removeBook(e.target.parentElement.previousElementSibling.textContent);
+
   ui.showAlert('Book deleted.', 'success');
 
   e.preventDefault();
